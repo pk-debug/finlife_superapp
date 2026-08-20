@@ -2,7 +2,7 @@
 ///
 /// WHAT: a minimal key-value contract (`read`/`write`/`delete`) for
 /// exactly the auth token pair — deliberately not a general-purpose
-/// storage interface.
+/// storage interface.₹
 ///
 /// WHY this lives in `core/storage` and not inside the Auth feature's own
 /// `data/` layer: every future feature that needs to attach an
