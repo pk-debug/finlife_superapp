@@ -50,6 +50,14 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+   # ---- GetX (Lifestyle module only) --------------------------------------
+  # Used exclusively inside features/lifestyle/ as a self-contained,
+  # independent learning module — the rest of the app deliberately stays
+  # on Riverpod/go_router. See lib/features/lifestyle/lifestyle_module.dart
+  # for the full architectural explanation of why this is nested, not
+  # app-wide.
+  get: ^4.7.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/domain_summary_card.dart';
@@ -170,7 +171,15 @@ class _DashboardBody extends StatelessWidget {
               return DomainSummaryCard(
                 summary: summary,
                 icon: _iconFor(summary.domain),
-                onTap: () => _placeholderSnackbar(context, summary.title),
+                // WHY Lifestyle is special-cased here instead of staying
+                // a placeholder like every other domain card: it's the
+                // first domain with a real screen behind it — the GetX
+                // Habit Tracker module at `/lifestyle`. Every other card
+                // stays a placeholder until its own feature drop lands,
+                // same as before.
+                onTap: summary.domain == AppDomain.lifestyle
+                    ? () => context.push('/lifestyle')
+                    : () => _placeholderSnackbar(context, summary.title),
               );
             },
           ),
