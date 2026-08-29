@@ -40,13 +40,11 @@ import '../state/auth_state.dart';
 /// mounts.
 class AuthViewModel extends StateNotifier<AuthState> {
   AuthViewModel({
-    required RequestOtp requestOtp,
+    required this._requestOtp,
     required VerifyOtp verifyOtp,
-    required AuthenticateWithBiometrics authenticateWithBiometrics,
+    required this._authenticateWithBiometrics,
     required WatchAuthSession watchAuthSession,
-  })  : _requestOtp = requestOtp,
-        _verifyOtp = verifyOtp,
-        _authenticateWithBiometrics = authenticateWithBiometrics,
+  })  : _verifyOtp = verifyOtp,
         super(const AuthState.checkingSession()) {
     _sessionSubscription = watchAuthSession().listen(_onSessionChanged);
   }

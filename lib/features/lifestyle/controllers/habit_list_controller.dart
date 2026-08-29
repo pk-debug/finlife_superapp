@@ -67,7 +67,7 @@ class HabitListController extends GetxController {
     _milestoneWorker = ever<int>(_service.milestoneStreak, (streak) {
       if (streak > 0) {
         Get.snackbar(
-          '🔥 ${streak}-day streak!',
+          '🔥 $streak-day streak!',
           'Keep it up — consistency is the whole game.',
           snackPosition: SnackPosition.TOP,
         );

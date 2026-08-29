@@ -30,10 +30,9 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({
     required AuthRemoteDataSource remoteDataSource,
     required BiometricLocalDataSource biometricDataSource,
-    required TokenStore tokenStore,
+    required this._tokenStore,
   })  : _remote = remoteDataSource,
-        _biometric = biometricDataSource,
-        _tokenStore = tokenStore {
+        _biometric = biometricDataSource {
     _restoreSession();
   }
 
