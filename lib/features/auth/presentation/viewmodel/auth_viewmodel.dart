@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/auth_session.dart';
@@ -92,16 +93,19 @@ class AuthViewModel extends StateNotifier<AuthState> {
   /// session was persisted, not by this method's return value directly.
   /// This guards against a subtle bug class where the UI would show
   /// "authenticated" a moment before the token was actually saved.
-  Future<void> submitOtp(String code) async {
-    final challenge = state.challenge;
-    if (challenge == null) return; // UI should never allow this; defensive.
-    state = AuthState.otpEntry(challenge, isSubmitting: true);
-    try {
-      await _verifyOtp(challengeId: challenge.challengeId, code: code);
-    } catch (e) {
-      state = AuthState.otpEntry(challenge, errorMessage: _readableMessage(e));
-    }
+Future<void> submitOtp(String code) async {
+  final challenge = state.challenge;
+  if (challenge == null) return;
+  state = AuthState.otpEntry(challenge, isSubmitting: true);
+  debugPrint('[auth] submitOtp calling _verifyOtp with code=$code');
+  try {
+    await _verifyOtp(challengeId: challenge.challengeId, code: code);
+    debugPrint('[auth] _verifyOtp completed successfully');
+  } catch (e) {
+    debugPrint('[auth] _verifyOtp threw: $e');
+    state = AuthState.otpEntry(challenge, errorMessage: _readableMessage(e));
   }
+}
 
   /// Intent: user tapped "Resend code" (only enabled once
   /// [OtpChallenge.canResend] is true — enforced by the widget, not here,

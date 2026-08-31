@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/usecases/get_home_dashboard.dart';
@@ -63,10 +64,13 @@ class HomeViewModel extends StateNotifier<HomeState> {
   Future<void> refresh() => _fetchAndSetState();
 
   Future<void> _fetchAndSetState() async {
+    debugPrint('[home] fetch starting');
     try {
       final summaries = await _getHomeDashboard();
+      debugPrint('[home] fetch succeeded: ${summaries.length}');
       state = HomeState.data(summaries);
     } catch (e) {
+      debugPrint('[home] fetch failed: $e');
       // HOW MUCH: no retry/backoff here — Home is a low-stakes read, a
       // manual pull-to-refresh is an acceptable retry mechanism. Compare
       // to Stock's WebSocket reconnect, which does need exponential

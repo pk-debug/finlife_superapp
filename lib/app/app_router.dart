@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -50,6 +51,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: refreshStream,
     redirect: (context, routerState) {
       final authState = ref.read(authViewModelProvider);
+      debugPrint('[router] redirect eval, stage=${authState.stage}');
 
       // Still restoring a possible previous session — don't redirect yet,
       // avoids a flash of the login screen for a user who turns out to
