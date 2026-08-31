@@ -57,6 +57,8 @@ dependencies:
   # for the full architectural explanation of why this is nested, not
   # app-wide.
   get: ^4.7.3
+  sqflite: ^2.3.3            # Local SQL database — the SSOT
+
 
 dev_dependencies:
   flutter_test:
