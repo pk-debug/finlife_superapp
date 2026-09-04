@@ -46,8 +46,8 @@ class AppDatabase {
   }
 
   Future<Database> _open() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'offline_sync_engine.db');
+    final String dbPath = await getDatabasesPath();
+    final String path = join(dbPath, 'offline_sync_engine.db');
 
     return openDatabase(
       path,

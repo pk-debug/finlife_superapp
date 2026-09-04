@@ -58,7 +58,7 @@ class HabitDetailView extends GetView<HabitDetailController> {
               Text(habit.title, style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 8),
               Text(
-                habit.streak > 0 ? '🔥 ${habit.streak} ${'day_streak'.tr}' : 'No streak yet',
+                habit.streak > 0 ? ' ${habit.streak} ${'day_streak'.tr}' : 'No streak yet',
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               const SizedBox(height: 32),
