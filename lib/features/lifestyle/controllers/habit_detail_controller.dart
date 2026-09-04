@@ -73,8 +73,16 @@ class HabitDetailController extends GetxController {
       onConfirm: () {
         _service.removeHabit(habitId);
         Get.back(); // close the dialog
-        Get.back(); // pop the detail page itself
-        Get.snackbar('Deleted', 'Habit removed.', snackPosition: SnackPosition.BOTTOM);
+        Future.delayed(const Duration(milliseconds: 150), () {
+          Get.back(); // Pop HabitDetailView
+          Get.snackbar(
+            'Deleted', 
+            'Habit removed.', 
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        });
+        // Get.back(); // pop the detail page itself
+        // Get.snackbar('Deleted', 'Habit removed.', snackPosition: SnackPosition.BOTTOM);
       },
     );
   }
