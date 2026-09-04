@@ -1,3 +1,4 @@
+import 'package:finlife_superapp/features/home/presentation/views/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -56,7 +57,7 @@ class LoginScreen extends ConsumerWidget {
             // Showing a spinner (rather than, say, a blank Scaffold) for
             // that one frame is a strictly better fallback than crashing
             // on a null-unwrap in PhoneEntryView/OtpEntryView.
-            AuthStage.authenticated => const _CheckingSessionView(key: ValueKey('redirecting')),
+            AuthStage.authenticated => const HomeScreen(key: ValueKey('home')),
           },
         ),
       ),
