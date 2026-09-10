@@ -23,14 +23,14 @@ import 'package:geolocator/geolocator.dart';
 /// HOW: plain `DateTime.now().hour` bucketing — no `intl` needed for
 /// something this coarse; `intl` is reserved for actual date/currency
 /// formatting in the data layer (see `DomainSummaryModel`).
-class GreetingHeader extends StatefulWidget {
-  const GreetingHeader({super.key});
+class GreetingHeaderAndCurrentLocation extends StatefulWidget {
+  const GreetingHeaderAndCurrentLocation({super.key});
 
   @override
-  State<GreetingHeader> createState() => _GreetingHeaderState();
+  State<GreetingHeaderAndCurrentLocation> createState() => _GreetingHeaderState();
 }
 
-class _GreetingHeaderState extends State<GreetingHeader> {
+class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
   String _locationLabel = 'Finding your location…';
 
   @override
@@ -106,10 +106,11 @@ class _GreetingHeaderState extends State<GreetingHeader> {
 
   String get _greeting {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return 'Good morning, Alex';
+    if (hour < 17) return 'Good afternoon, Alex';
+    return 'Good evening, Alex';
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +118,7 @@ class _GreetingHeaderState extends State<GreetingHeader> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$_greeting,', style: theme.textTheme.bodyLarge),
+        Text(_greeting, style: theme.textTheme.bodyLarge),
         Row(
           children: [
             const Icon(Icons.location_on_outlined, size: 20),
@@ -128,7 +129,7 @@ class _GreetingHeaderState extends State<GreetingHeader> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
             ),

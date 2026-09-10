@@ -135,7 +135,7 @@ class _DashboardBody extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const GreetingHeader(),
+          const GreetingHeaderAndCurrentLocation(),
           const SizedBox(height: 20),
           QuickActionsRow(
             actions: [
