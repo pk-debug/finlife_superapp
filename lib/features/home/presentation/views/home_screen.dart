@@ -48,11 +48,13 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('FinLife Hub')),
       body: SafeArea(
         child: switch (state) {
-          _ when state.isLoading => const Center(child: CircularProgressIndicator()),
+          _ when state.isLoading => const Center(
+            child: CircularProgressIndicator(),
+          ),
           _ when state.hasError && !state.hasData => _ErrorRetry(
-              message: state.errorMessage!,
-              onRetry: () => ref.read(homeViewModelProvider.notifier).load(),
-            ),
+            message: state.errorMessage!,
+            onRetry: () => ref.read(homeViewModelProvider.notifier).load(),
+          ),
           _ => _DashboardBody(state: state, ref: ref),
         },
       ),
@@ -80,11 +82,22 @@ class _ErrorRetry extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline_rounded, size: 40, color: Theme.of(context).colorScheme.error),
+            Icon(
+              Icons.error_outline_rounded,
+              size: 40,
+              color: Theme.of(context).colorScheme.error,
+            ),
             const SizedBox(height: 12),
-            Text('Couldn\'t load your dashboard', style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              'Couldn\'t load your dashboard',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: 4),
-            Text(message, textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 16),
             FilledButton(onPressed: onRetry, child: const Text('Retry')),
           ],
@@ -108,12 +121,12 @@ class _DashboardBody extends StatelessWidget {
   final WidgetRef ref;
 
   IconData _iconFor(AppDomain domain) => switch (domain) {
-        AppDomain.banking => Icons.account_balance_rounded,
-        AppDomain.insurance => Icons.shield_outlined,
-        AppDomain.stock => Icons.show_chart_rounded,
-        AppDomain.consumer => Icons.shopping_bag_outlined,
-        AppDomain.lifestyle => Icons.favorite_border_rounded,
-      };
+    AppDomain.banking => Icons.account_balance_rounded,
+    AppDomain.insurance => Icons.shield_outlined,
+    AppDomain.stock => Icons.show_chart_rounded,
+    AppDomain.consumer => Icons.shopping_bag_outlined,
+    AppDomain.lifestyle => Icons.favorite_border_rounded,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -122,7 +135,7 @@ class _DashboardBody extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          const GreetingHeader(userName: 'Alex'),
+          const GreetingHeader(),
           const SizedBox(height: 20),
           QuickActionsRow(
             actions: [
