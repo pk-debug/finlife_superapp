@@ -28,5 +28,7 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>NSLocationUsageDescription</key>
+	<string>FinLife Hub uses your location to show your current area on the dashboard.</string>
 </dict>
 </plist>
