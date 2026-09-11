@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
@@ -37,12 +39,27 @@ class GreetingHeaderAndCurrentLocation extends StatefulWidget {
 class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
   String _locationLabel = 'Finding your location…';
   String _batteryLabel = 'Checking battery…';
+  StreamSubscription<int>? _batterySubscription;
 
   @override
   void initState() {
     super.initState();
     _loadLocation();
     _loadDeviceInfo();
+    _listenToBatteryEvents();
+  }
+
+  void _listenToBatteryEvents() {
+    _batterySubscription = DeviceInfoChannel.batteryLevelStream.listen(
+      (batteryLevel) => _setBatteryLabel('$batteryLevel%'),
+      onError: (_) => _setBatteryLabel('Battery unavailable'),
+    );
+  }
+
+  @override
+  void dispose() {
+    _batterySubscription?.cancel();
+    super.dispose();
   }
 
   /// Gets battery, Android ID and the app-install UUID in one native call.

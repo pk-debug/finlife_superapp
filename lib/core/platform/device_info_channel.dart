@@ -22,6 +22,9 @@ class DeviceInfoChannel {
   DeviceInfoChannel._();
 
   static const _channel = MethodChannel('com.finlife.superapp/device_info');
+  static const _batteryEvents = EventChannel(
+    'com.finlife.superapp/battery_events',
+  );
 
   static Future<NativeDeviceInfo> getDeviceInfo() async {
     final result = await _channel.invokeMapMethod<String, dynamic>(
@@ -33,4 +36,10 @@ class DeviceInfoChannel {
       installUuid: result?['installUuid'] as String?,
     );
   }
+
+  /// Emits a new percentage whenever Android reports a battery-state change.
+  static Stream<int> get batteryLevelStream => _batteryEvents
+      .receiveBroadcastStream()
+      .map<int>((event) => event as int)
+      .distinct();
 }
