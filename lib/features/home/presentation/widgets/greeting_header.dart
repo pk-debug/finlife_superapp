@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -27,16 +28,39 @@ class GreetingHeaderAndCurrentLocation extends StatefulWidget {
   const GreetingHeaderAndCurrentLocation({super.key});
 
   @override
-  State<GreetingHeaderAndCurrentLocation> createState() => _GreetingHeaderState();
+  State<GreetingHeaderAndCurrentLocation> createState() =>
+      _GreetingHeaderState();
 }
 
 class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
+  static const _batteryChannel = MethodChannel('com.finlife.superapp/battery');
+
   String _locationLabel = 'Finding your location…';
+  String _batteryLabel = 'Checking battery…';
 
   @override
   void initState() {
     super.initState();
     _loadLocation();
+    _loadBatteryLevel();
+  }
+
+  /// Gets the battery percentage from Android's native [BatteryManager] via
+  /// the application's MethodChannel.
+  Future<void> _loadBatteryLevel() async {
+    try {
+      final batteryLevel = await _batteryChannel.invokeMethod<int>(
+        'getBatteryLevel',
+      );
+      _setBatteryLabel(
+        batteryLevel == null ? 'Battery unavailable' : '$batteryLevel%',
+      );
+    } on PlatformException {
+      _setBatteryLabel('Battery unavailable');
+    } on MissingPluginException {
+      // The native handler is deliberately implemented on Android only.
+      _setBatteryLabel('Battery unavailable');
+    }
   }
 
   Future<void> _loadLocation() async {
@@ -104,13 +128,16 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
     if (mounted) setState(() => _locationLabel = value);
   }
 
+  void _setBatteryLabel(String value) {
+    if (mounted) setState(() => _batteryLabel = value);
+  }
+
   String get _greeting {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'Good morning, Alex';
     if (hour < 17) return 'Good afternoon, Alex';
     return 'Good evening, Alex';
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +160,10 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
                 ),
               ),
             ),
+            const SizedBox(width: 12),
+            const Icon(Icons.battery_4_bar_outlined, size: 20),
+            const SizedBox(width: 4),
+            Text(_batteryLabel, style: theme.textTheme.bodyMedium),
           ],
         ),
       ],
