@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
@@ -48,10 +49,18 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
   void initState() {
     super.initState();
     _loadLocation();
-    _loadDeviceInfo();
-    _listenToBatteryEvents();
-    _loadNetworkStatus();
-    _listenToNetworkEvents();
+    if ({
+      TargetPlatform.android,
+      TargetPlatform.iOS,
+      TargetPlatform.macOS,
+    }.contains(defaultTargetPlatform)) {
+      _loadDeviceInfo();
+      _listenToBatteryEvents();
+      _loadNetworkStatus();
+      _listenToNetworkEvents();
+    } else {
+      _batteryLabel = 'Battery unavailable';
+    }
   }
 
   void _listenToBatteryEvents() {
