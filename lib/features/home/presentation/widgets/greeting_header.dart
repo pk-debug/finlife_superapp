@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../../../core/platform/device_info_channel.dart';
+
 /// Time-aware greeting shown at the top of Home ("Good morning, ...").
 ///
 /// WHAT: a header that computes a time-aware greeting and displays the
@@ -33,8 +35,6 @@ class GreetingHeaderAndCurrentLocation extends StatefulWidget {
 }
 
 class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
-  static const _batteryChannel = MethodChannel('com.finlife.superapp/battery');
-
   String _locationLabel = 'Finding your location…';
   String _batteryLabel = 'Checking battery…';
 
@@ -42,16 +42,14 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
   void initState() {
     super.initState();
     _loadLocation();
-    _loadBatteryLevel();
+    _loadDeviceInfo();
   }
 
-  /// Gets the battery percentage from Android's native [BatteryManager] via
-  /// the application's MethodChannel.
-  Future<void> _loadBatteryLevel() async {
+  /// Gets battery, Android ID and the app-install UUID in one native call.
+  Future<void> _loadDeviceInfo() async {
     try {
-      final batteryLevel = await _batteryChannel.invokeMethod<int>(
-        'getBatteryLevel',
-      );
+      final deviceInfo = await DeviceInfoChannel.getDeviceInfo();
+      final batteryLevel = deviceInfo.batteryLevel;
       _setBatteryLabel(
         batteryLevel == null ? 'Battery unavailable' : '$batteryLevel%',
       );
