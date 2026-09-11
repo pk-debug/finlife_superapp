@@ -37,6 +37,12 @@ class DeviceInfoChannel {
     );
   }
 
+  /// Prevents screenshots and screen recording while sensitive financial data
+  /// is visible. Enable it after authentication; disable it only where a
+  /// business requirement explicitly permits captures.
+  static Future<void> setScreenCaptureProtection(bool enabled) => _channel
+      .invokeMethod<void>('setScreenCaptureProtection', {'enabled': enabled});
+
   /// Emits a new percentage whenever Android reports a battery-state change.
   static Stream<int> get batteryLevelStream => _batteryEvents
       .receiveBroadcastStream()

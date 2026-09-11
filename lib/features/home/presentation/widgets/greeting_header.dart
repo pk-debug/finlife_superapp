@@ -6,6 +6,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../../core/platform/device_info_channel.dart';
+import '../../../../core/platform/network_status_channel.dart';
 
 /// Time-aware greeting shown at the top of Home ("Good morning, ...").
 ///
@@ -40,6 +41,8 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
   String _locationLabel = 'Finding your location…';
   String _batteryLabel = 'Checking battery…';
   StreamSubscription<int>? _batterySubscription;
+  StreamSubscription<bool>? _networkSubscription;
+  bool _isOnline = true;
 
   @override
   void initState() {
@@ -47,6 +50,8 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
     _loadLocation();
     _loadDeviceInfo();
     _listenToBatteryEvents();
+    _loadNetworkStatus();
+    _listenToNetworkEvents();
   }
 
   void _listenToBatteryEvents() {
@@ -56,9 +61,27 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
     );
   }
 
+  Future<void> _loadNetworkStatus() async {
+    try {
+      _setOnlineStatus(await NetworkStatusChannel.isOnline());
+    } on PlatformException {
+      // Network status is Android-only; retain the default on other targets.
+    } on MissingPluginException {
+      // Network status is Android-only; retain the default on other targets.
+    }
+  }
+
+  void _listenToNetworkEvents() {
+    _networkSubscription = NetworkStatusChannel.onlineStatusStream.listen(
+      _setOnlineStatus,
+      onError: (_) {},
+    );
+  }
+
   @override
   void dispose() {
     _batterySubscription?.cancel();
+    _networkSubscription?.cancel();
     super.dispose();
   }
 
@@ -147,6 +170,10 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
     if (mounted) setState(() => _batteryLabel = value);
   }
 
+  void _setOnlineStatus(bool value) {
+    if (mounted) setState(() => _isOnline = value);
+  }
+
   String get _greeting {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'Good morning, Alex';
@@ -181,6 +208,25 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
             Text(_batteryLabel, style: theme.textTheme.bodyMedium),
           ],
         ),
+        if (!_isOnline) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(
+                Icons.cloud_off_outlined,
+                size: 18,
+                color: theme.colorScheme.error,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Offline — transaction services are unavailable',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
