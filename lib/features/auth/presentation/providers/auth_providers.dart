@@ -38,12 +38,9 @@ final _biometricDataSourceProvider = Provider<BiometricLocalDataSource>(
   (ref) => FakeBiometricLocalDataSource(),
 );
 
-/// HOW MUCH this matters for manual testing: because this is
-/// [InMemoryTokenStore], every hot restart / app relaunch starts fully
-/// signed out — there is no real persistence yet (see that class's own
-/// TODO for the `flutter_secure_storage`-backed swap, which is the
-/// concrete next step for a later feature drop, not this one).
-final _tokenStoreProvider = Provider<TokenStore>((ref) => InMemoryTokenStore());
+/// This provider uses the real persistent store for the authenticated
+/// session so the app restores the last signed-in session after a restart.
+final _tokenStoreProvider = Provider<TokenStore>((ref) => HiveTokenStore());
 
 final _authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepositoryImpl(
