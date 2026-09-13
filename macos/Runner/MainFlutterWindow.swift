@@ -26,11 +26,12 @@ class MainFlutterWindow: NSWindow {
     ).setMethodCallHandler { [weak self] call, result in
       switch call.method {
       case "getDeviceInfo":
-        result([
+        let deviceInfo: [String: Any] = [
           "batteryLevel": MacDeviceInfo.batteryLevel() ?? NSNull(),
           "androidId": MacDeviceInfo.deviceId() ?? NSNull(),
           "installUuid": MacDeviceInfo.installUuid(),
-        ])
+        ]
+        result(deviceInfo)
       case "setScreenCaptureProtection":
         let arguments = call.arguments as? [String: Any]
         let enabled = arguments?["enabled"] as? Bool ?? true
@@ -79,7 +80,7 @@ private enum MacDeviceInfo {
 
   static func deviceId() -> String? {
     let service = IOServiceGetMatchingService(
-      kIOMainPortDefault,
+      kIOMasterPortDefault,
       IOServiceMatching("IOPlatformExpertDevice")
     )
     guard service != 0 else { return nil }
