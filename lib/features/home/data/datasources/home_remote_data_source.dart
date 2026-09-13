@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:flutter/services.dart';
+
 import '../models/domain_summary_model.dart';
 
 /// Contract + fake implementation for fetching dashboard data "remotely".
@@ -33,56 +37,25 @@ abstract class HomeRemoteDataSource {
   Future<List<DomainSummaryModel>> fetchDashboardSummaries();
 }
 
-class FakeHomeRemoteDataSource implements HomeRemoteDataSource {
-  /// HOW MUCH: fixed 600ms artificial latency — long enough to see a
-  /// loading state during manual testing, short enough not to be annoying.
-  /// Swap for real network timing once wired to an actual backend.
-  static const _simulatedLatency = Duration(milliseconds: 600);
+/// Asset-backed mock implementation used until the Home API exists.
+///
+/// [AssetBundle] is injected, rather than read directly from [rootBundle], so
+/// widget/unit tests can provide their own bundle without changing data,
+/// domain, or presentation code.
+class AssetHomeRemoteDataSource implements HomeRemoteDataSource {
+  const AssetHomeRemoteDataSource(this._assets);
+
+  static const _assetPath = 'assets/mock/home_dashboard.json';
+
+  final AssetBundle _assets;
 
   @override
   Future<List<DomainSummaryModel>> fetchDashboardSummaries() async {
-    await Future.delayed(_simulatedLatency);
-    return _fakeJsonPayload.map(DomainSummaryModel.fromJson).toList();
+    final rawJson = await _assets.loadString(_assetPath);
+    final decoded = jsonDecode(rawJson) as List<dynamic>;
+    return decoded
+        .cast<Map<String, dynamic>>()
+        .map(DomainSummaryModel.fromJson)
+        .toList();
   }
-
-  /// The exact JSON shape a real `/dashboard/summary` endpoint should
-  /// return — one object per domain. Documented here so a backend
-  /// engineer can implement the real endpoint from this file alone.
-  static final List<Map<String, dynamic>> _fakeJsonPayload = [
-    {
-      'domain': 'banking',
-      'title': 'Banking',
-      'headline_value': '₹42,500.00',
-      'status_line': 'Synced 2 min ago',
-      'is_stale': false,
-    },
-    {
-      'domain': 'insurance',
-      'title': 'Insurance',
-      'headline_value': '3 policies',
-      'status_line': '1 claim in review',
-      'is_stale': false,
-    },
-    {
-      'domain': 'stock',
-      'title': 'Stock Market',
-      'headline_value': '+2.4% today',
-      'status_line': 'Portfolio ₹1,18,340',
-      'is_stale': false,
-    },
-    {
-      'domain': 'consumer',
-      'title': 'Shopping',
-      'headline_value': '2 orders in transit',
-      'status_line': 'Next arrival: tomorrow',
-      'is_stale': false,
-    },
-    {
-      'domain': 'lifestyle',
-      'title': 'Lifestyle',
-      'headline_value': '5-day habit streak',
-      'status_line': '7,340 steps today',
-      'is_stale': false,
-    },
-  ];
 }
