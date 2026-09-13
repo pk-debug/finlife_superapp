@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/home_remote_data_source.dart';
@@ -31,7 +32,7 @@ import '../viewmodel/home_viewmodel.dart';
 /// repository, use case) and a `StateNotifierProvider` for the one
 /// stateful layer (the ViewModel).
 final _remoteDataSourceProvider = Provider<HomeRemoteDataSource>(
-  (ref) => FakeHomeRemoteDataSource(),
+  (ref) => AssetHomeRemoteDataSource(rootBundle),
 );
 
 final _repositoryProvider = Provider<HomeRepository>(
