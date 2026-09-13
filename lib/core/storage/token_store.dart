@@ -28,6 +28,8 @@
 /// HOW MUCH: stores exactly one token pair at a time — this app has one
 /// signed-in user per device install, not multi-account switching (that
 /// would need a keyed store, a deliberately out-of-scope feature today).
+import 'package:hive/hive.dart';
+
 abstract class TokenStore {
   Future<StoredTokens?> read();
   Future<void> write(StoredTokens tokens);
@@ -75,4 +77,54 @@ class InMemoryTokenStore implements TokenStore {
 
   @override
   Future<void> delete() async => _tokens = null;
+}
+
+/// Persistent [TokenStore] backed by Hive.
+class HiveTokenStore implements TokenStore {
+  static const String _boxName = 'auth_tokens';
+  static const String _tokenKey = 'session';
+
+  static Box<Map>? _box;
+
+  Future<Box<Map>> _openBox() async {
+    _box ??= await Hive.openBox<Map>(_boxName);
+    return _box!;
+  }
+
+  @override
+  Future<StoredTokens?> read() async {
+    final box = await _openBox();
+    final value = box.get(_tokenKey);
+    if (value == null) return null;
+
+    final accessToken = value['accessToken'];
+    final refreshToken = value['refreshToken'];
+    final expiresAt = value['accessTokenExpiresAt'];
+
+    if (accessToken is! String || refreshToken is! String || expiresAt is! int) {
+      return null;
+    }
+
+    return StoredTokens(
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      accessTokenExpiresAt: DateTime.fromMicrosecondsSinceEpoch(expiresAt),
+    );
+  }
+
+  @override
+  Future<void> write(StoredTokens tokens) async {
+    final box = await _openBox();
+    await box.put(_tokenKey, {
+      'accessToken': tokens.accessToken,
+      'refreshToken': tokens.refreshToken,
+      'accessTokenExpiresAt': tokens.accessTokenExpiresAt.microsecondsSinceEpoch,
+    });
+  }
+
+  @override
+  Future<void> delete() async {
+    final box = await _openBox();
+    await box.delete(_tokenKey);
+  }
 }
