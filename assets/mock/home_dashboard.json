@@ -1,0 +1,36 @@
+[
+  {
+    "domain": "banking",
+    "title": "Banking",
+    "headline_value": "₹42,500.00",
+    "status_line": "Synced 2 min ago",
+    "is_stale": false
+  },
+  {
+    "domain": "insurance",
+    "title": "Insurance",
+    "headline_value": "3 policies",
+    "status_line": "1 claim in review",
+    "is_stale": false
+  },
+  {
+    "domain": "stock",
+    "title": "Stock Market",
+    "headline_value": "+2.4% today",
+    "status_line": "Portfolio ₹1,18,340",
+    "is_stale": false
+  },
+  {
+    "domain": "consumer",
+    "title": "Shopping",
+    "headline_value": "2 orders in transit",
+    "is_stale": false
+  },
+  {
+    "domain": "lifestyle",
+    "title": "Lifestyle",
+    "headline_value": "5-day habit streak",
+    "status_line": "7,340 steps today",
+    "is_stale": false
+  }
+]
