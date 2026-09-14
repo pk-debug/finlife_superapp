@@ -32,7 +32,7 @@ class DomainSummaryModel {
     required this.domainKey,
     required this.title,
     required this.headlineValue,
-    required this.statusLine,
+    this.statusLine = '',
     required this.isStale,
   });
 
@@ -57,7 +57,7 @@ class DomainSummaryModel {
       domainKey: json['domain'] as String,
       title: json['title'] as String,
       headlineValue: json['headline_value'] as String,
-      statusLine: json['status_line'] as String,
+      statusLine: (json['status_line'] as String?) ?? '',
       isStale: json['is_stale'] as bool? ?? false,
     );
   }
