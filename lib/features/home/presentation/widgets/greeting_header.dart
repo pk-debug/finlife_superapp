@@ -49,11 +49,13 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
   void initState() {
     super.initState();
     _loadLocation();
-    if ({
+    final nativeTargets = {
       TargetPlatform.android,
       TargetPlatform.iOS,
       TargetPlatform.macOS,
-    }.contains(defaultTargetPlatform)) {
+    };
+
+    if (!kIsWeb && nativeTargets.contains(defaultTargetPlatform)) {
       _loadDeviceInfo();
       _listenToBatteryEvents();
       _loadNetworkStatus();
@@ -64,6 +66,7 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
   }
 
   void _listenToBatteryEvents() {
+    if (kIsWeb) return;
     _batterySubscription = DeviceInfoChannel.batteryLevelStream.listen(
       (batteryLevel) => _setBatteryLabel('$batteryLevel%'),
       onError: (_) => _setBatteryLabel('Battery unavailable'),
@@ -71,6 +74,7 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
   }
 
   Future<void> _loadNetworkStatus() async {
+    if (kIsWeb) return;
     try {
       _setOnlineStatus(await NetworkStatusChannel.isOnline());
     } on PlatformException {
@@ -81,6 +85,7 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
   }
 
   void _listenToNetworkEvents() {
+    if (kIsWeb) return;
     _networkSubscription = NetworkStatusChannel.onlineStatusStream.listen(
       _setOnlineStatus,
       onError: (_) {},
