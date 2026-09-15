@@ -7,6 +7,7 @@ import '../features/auth/presentation/providers/auth_providers.dart';
 import '../features/auth/presentation/state/auth_state.dart';
 import '../features/auth/presentation/views/login_screen.dart';
 import '../features/home/presentation/views/home_screen.dart';
+import '../features/home/presentation/views/scan_qr_screen.dart';
 import '../features/lifestyle/lifestyle_module.dart';
 
 /// App-wide route table, exposed as a Riverpod provider so its
@@ -75,6 +76,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/',
         name: 'home',
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/scan-qr',
+        name: 'scan-qr',
+        builder: (context, state) => const ScanQrScreen(),
       ),
       GoRoute(
         path: '/lifestyle',
