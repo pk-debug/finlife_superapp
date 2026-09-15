@@ -162,7 +162,7 @@ class _DashboardBody extends StatelessWidget {
               QuickAction(
                 label: 'Support',
                 icon: Icons.headset_mic_outlined,
-                onTap: () => _placeholderSnackbar(context, 'Support'),
+                onTap: () => context.push('/support'),
               ),
             ],
           ),
