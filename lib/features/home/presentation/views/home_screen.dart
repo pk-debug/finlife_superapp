@@ -147,7 +147,7 @@ class _DashboardBody extends StatelessWidget {
               QuickAction(
                 label: 'Scan QR',
                 icon: Icons.qr_code_scanner_rounded,
-                onTap: () => _placeholderSnackbar(context, 'Scan QR'),
+                onTap: () => context.push('/scan-qr'),
               ),
               QuickAction(
                 label: 'Add Money',
