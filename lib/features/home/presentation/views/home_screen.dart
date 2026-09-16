@@ -142,7 +142,7 @@ class _DashboardBody extends StatelessWidget {
               QuickAction(
                 label: 'Pay',
                 icon: Icons.send_rounded,
-                onTap: () => _placeholderSnackbar(context, 'Pay'),
+                onTap: () => context.push('/pay'),
               ),
               QuickAction(
                 label: 'Scan QR',
@@ -152,7 +152,7 @@ class _DashboardBody extends StatelessWidget {
               QuickAction(
                 label: 'Add Money',
                 icon: Icons.add_card_rounded,
-                onTap: () => _placeholderSnackbar(context, 'Add Money'),
+                onTap: () => context.push('/pay'),
               ),
               QuickAction(
                 label: 'Track Order',
