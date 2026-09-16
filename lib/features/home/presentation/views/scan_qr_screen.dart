@@ -3,7 +3,9 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 /// QR scanning screen used by the Home quick action.
 class ScanQrScreen extends StatefulWidget {
-  const ScanQrScreen({super.key});
+  const ScanQrScreen({super.key, this.onScanned});
+
+  final ValueChanged<String>? onScanned;
 
   @override
   State<ScanQrScreen> createState() => _ScanQrScreenState();
@@ -24,9 +26,7 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scan QR'),
-      ),
+      appBar: AppBar(title: const Text('Scan QR')),
       body: Stack(
         children: [
           MobileScanner(
@@ -36,6 +36,12 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
               for (final barcode in barcodes) {
                 final String? rawValue = barcode.rawValue;
                 if (rawValue != null && rawValue.isNotEmpty) {
+                  if (widget.onScanned != null) {
+                    _controller.stop();
+                    widget.onScanned!(_recipientFromQr(rawValue));
+                    Navigator.of(context).pop();
+                    break;
+                  }
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Scanned: $rawValue'),
@@ -68,5 +74,14 @@ class _ScanQrScreenState extends State<ScanQrScreen> {
         ],
       ),
     );
+  }
+
+  String _recipientFromQr(String rawValue) {
+    final uri = Uri.tryParse(rawValue);
+    if (uri?.scheme == 'upi') {
+      final pa = uri?.queryParameters['pa'];
+      if (pa != null && pa.isNotEmpty) return pa;
+    }
+    return rawValue;
   }
 }

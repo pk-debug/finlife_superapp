@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'my_qr_screen.dart';
+import 'payment_amount_screen.dart';
+import 'scan_qr_screen.dart';
+
 /// Recipient selection screen for starting a payment.
 class PayScreen extends StatefulWidget {
   const PayScreen({super.key});
@@ -27,10 +31,17 @@ class _PayScreenState extends State<PayScreen> {
   }
 
   void _selectRecipient(String recipient) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Payment to $recipient is ready'),
-        behavior: SnackBarBehavior.floating,
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PaymentAmountScreen(recipient: recipient),
+      ),
+    );
+  }
+
+  void _scanQr() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ScanQrScreen(onScanned: _selectRecipient),
       ),
     );
   }
@@ -74,6 +85,19 @@ class _PayScreenState extends State<PayScreen> {
             Text(
               'Select someone from your contacts or enter their details below.',
               style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: _scanQr,
+              icon: const Icon(Icons.qr_code_scanner_rounded),
+              label: const Text('Scan QR to pay'),
+            ),
+            OutlinedButton.icon(
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const MyQrScreen())),
+              icon: const Icon(Icons.qr_code_2_rounded),
+              label: const Text('Show my QR to receive money'),
             ),
             const SizedBox(height: 20),
             TextField(
