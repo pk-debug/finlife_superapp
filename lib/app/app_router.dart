@@ -7,6 +7,7 @@ import '../features/auth/presentation/providers/auth_providers.dart';
 import '../features/auth/presentation/state/auth_state.dart';
 import '../features/auth/presentation/views/login_screen.dart';
 import '../features/home/presentation/views/home_screen.dart';
+import '../features/home/presentation/views/my_qr_screen.dart';
 import '../features/home/presentation/views/pay_screen.dart';
 import '../features/home/presentation/views/scan_qr_screen.dart';
 import '../features/home/presentation/views/support_screen.dart';
@@ -90,6 +91,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/pay',
         name: 'pay',
         builder: (context, state) => const PayScreen(),
+      ),
+      GoRoute(
+        path: '/my-qr',
+        name: 'my-qr',
+        builder: (context, state) => const MyQrScreen(),
       ),
       GoRoute(
         path: '/support',

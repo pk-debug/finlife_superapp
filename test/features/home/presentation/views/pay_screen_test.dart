@@ -8,9 +8,10 @@ void main() {
 
     expect(find.text('Aarav Sharma'), findsOneWidget);
     await tester.tap(find.text('Aarav Sharma'));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    expect(find.text('Payment to Aarav Sharma is ready'), findsOneWidget);
+    expect(find.text('Enter amount'), findsOneWidget);
+    expect(find.text('Aarav Sharma'), findsOneWidget);
   });
 
   testWidgets('PayScreen rejects an invalid manual recipient', (tester) async {
