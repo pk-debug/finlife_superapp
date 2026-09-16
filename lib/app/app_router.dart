@@ -7,6 +7,7 @@ import '../features/auth/presentation/providers/auth_providers.dart';
 import '../features/auth/presentation/state/auth_state.dart';
 import '../features/auth/presentation/views/login_screen.dart';
 import '../features/home/presentation/views/home_screen.dart';
+import '../features/home/presentation/views/pay_screen.dart';
 import '../features/home/presentation/views/scan_qr_screen.dart';
 import '../features/home/presentation/views/support_screen.dart';
 import '../features/lifestyle/lifestyle_module.dart';
@@ -45,7 +46,9 @@ import '../features/lifestyle/lifestyle_module.dart';
 /// guard for free, by virtue of not being `/login` — no per-route auth
 /// wiring will be needed as those land.
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final refreshStream = GoRouterRefreshStream(ref.watch(watchAuthSessionProvider)());
+  final refreshStream = GoRouterRefreshStream(
+    ref.watch(watchAuthSessionProvider)(),
+  );
   ref.onDispose(refreshStream.dispose);
 
   return GoRouter(
@@ -82,6 +85,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/scan-qr',
         name: 'scan-qr',
         builder: (context, state) => const ScanQrScreen(),
+      ),
+      GoRoute(
+        path: '/pay',
+        name: 'pay',
+        builder: (context, state) => const PayScreen(),
       ),
       GoRoute(
         path: '/support',
