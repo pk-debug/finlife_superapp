@@ -52,13 +52,8 @@ class AuthRepositoryImpl implements AuthRepository {
   Stream<AuthSession?> get sessionChanges => _sessionController.stream;
 
   Future<void> _restoreSession() async {
-    // WHAT: on cold start, check whether a token pair survived from a
-    // previous run. WHY it currently always finds nothing: today's
-    // TokenStore is InMemoryTokenStore (process-lifetime only) — see
-    // that class's own TODO for the real-persistence swap. This method
-    // is written against the *interface*, so it will start correctly
-    // restoring sessions the moment that swap happens, with zero changes
-    // needed here.
+    // The demo reads persisted tokens from Hive. A production app must use
+    // platform-backed encrypted storage and validate the session remotely.
     final stored = await _tokenStore.read();
     if (stored == null) {
       _emit(null);

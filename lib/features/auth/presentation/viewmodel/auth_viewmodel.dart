@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/auth_session.dart';
@@ -42,16 +41,15 @@ import '../state/auth_state.dart';
 class AuthViewModel extends StateNotifier<AuthState> {
   AuthViewModel({
     required this._requestOtp,
-    required VerifyOtp verifyOtp,
+    required this.verifyOtp,
     required this._authenticateWithBiometrics,
     required WatchAuthSession watchAuthSession,
-  })  : _verifyOtp = verifyOtp,
-        super(const AuthState.checkingSession()) {
+  }) : super(const AuthState.checkingSession()) {
     _sessionSubscription = watchAuthSession().listen(_onSessionChanged);
   }
 
   final RequestOtp _requestOtp;
-  final VerifyOtp _verifyOtp;
+  final VerifyOtp verifyOtp;
   final AuthenticateWithBiometrics _authenticateWithBiometrics;
   late final StreamSubscription<AuthSession?> _sessionSubscription;
 
@@ -93,19 +91,16 @@ class AuthViewModel extends StateNotifier<AuthState> {
   /// session was persisted, not by this method's return value directly.
   /// This guards against a subtle bug class where the UI would show
   /// "authenticated" a moment before the token was actually saved.
-Future<void> submitOtp(String code) async {
-  final challenge = state.challenge;
-  if (challenge == null) return;
-  state = AuthState.otpEntry(challenge, isSubmitting: true);
-  debugPrint('[auth] submitOtp calling _verifyOtp with code=$code');
-  try {
-    await _verifyOtp(challengeId: challenge.challengeId, code: code);
-    debugPrint('[auth] _verifyOtp completed successfully');
-  } catch (e) {
-    debugPrint('[auth] _verifyOtp threw: $e');
-    state = AuthState.otpEntry(challenge, errorMessage: _readableMessage(e));
+  Future<void> submitOtp(String code) async {
+    final challenge = state.challenge;
+    if (challenge == null) return;
+    state = AuthState.otpEntry(challenge, isSubmitting: true);
+    try {
+      await verifyOtp(challengeId: challenge.challengeId, code: code);
+    } catch (e) {
+      state = AuthState.otpEntry(challenge, errorMessage: _readableMessage(e));
+    }
   }
-}
 
   /// Intent: user tapped "Resend code" (only enabled once
   /// [OtpChallenge.canResend] is true — enforced by the widget, not here,

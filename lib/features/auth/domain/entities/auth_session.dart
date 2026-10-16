@@ -10,10 +10,9 @@ import 'package:equatable/equatable.dart';
 /// WHY tokens live on the entity (not hidden entirely in the data layer):
 /// the domain layer legitimately needs to know *that* a session exists
 /// and *whether it's still valid* (see [isAccessTokenExpired]) — that's
-/// business logic, not storage detail. What the domain layer never sees
-/// is *where* the token is persisted (Keychain/Keystore via
-/// `flutter_secure_storage`) — that stays entirely inside
-/// `data/datasources` / `core/storage`.
+/// business logic, not storage detail. The domain layer does not know
+/// where tokens are persisted. The current demo uses unencrypted Hive
+/// storage; production must use platform-backed secure storage.
 ///
 /// WHERE: `domain/entities` — depended on by every other feature that
 /// needs to know "is someone logged in" (Banking, Stock, etc. will all

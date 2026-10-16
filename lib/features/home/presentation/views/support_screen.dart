@@ -42,7 +42,7 @@ class SupportScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: ListView.separated(
             itemCount: options.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final option = options[index];
               return Card(
