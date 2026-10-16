@@ -10,6 +10,8 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.os.Build
 import android.os.BatteryManager
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
@@ -17,8 +19,10 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 
 class MainActivity : FlutterActivity() {
+    private val mainThreadHandler = Handler(Looper.getMainLooper())
     private val deviceInfoChannel = "com.finlife.superapp/device_info"
     private val batteryEventsChannel = "com.finlife.superapp/battery_events"
     private val networkChannel = "com.finlife.superapp/network"
@@ -79,17 +83,32 @@ class MainActivity : FlutterActivity() {
         EventChannel(flutterEngine.dartExecutor.binaryMessenger, networkEventsChannel)
             .setStreamHandler(object : EventChannel.StreamHandler {
                 private var networkCallback: ConnectivityManager.NetworkCallback? = null
+                private var isListening: AtomicBoolean? = null
 
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                    val callback = object : ConnectivityManager.NetworkCallback() {
-                        override fun onAvailable(network: Network) = events?.success(isOnline())
+                    val active = AtomicBoolean(true)
+                    isListening = active
+                    fun emitOnlineStatus() {
+                        mainThreadHandler.post {
+                            if (active.get()) events?.success(isOnline())
+                        }
+                    }
 
-                        override fun onLost(network: Network) = events?.success(isOnline())
+                    val callback = object : ConnectivityManager.NetworkCallback() {
+                        override fun onAvailable(network: Network) {
+                            emitOnlineStatus()
+                        }
+
+                        override fun onLost(network: Network) {
+                            emitOnlineStatus()
+                        }
 
                         override fun onCapabilitiesChanged(
                             network: Network,
                             networkCapabilities: NetworkCapabilities,
-                        ) = events?.success(isOnline())
+                        ) {
+                            emitOnlineStatus()
+                        }
                     }
                     networkCallback = callback
                     connectivityManager.registerNetworkCallback(
@@ -102,6 +121,8 @@ class MainActivity : FlutterActivity() {
                 }
 
                 override fun onCancel(arguments: Any?) {
+                    isListening?.set(false)
+                    isListening = null
                     networkCallback?.let(connectivityManager::unregisterNetworkCallback)
                     networkCallback = null
                 }
