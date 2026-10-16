@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:battery_plus/battery_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 
 import '../../../../core/platform/device_info_channel.dart';
 import '../../../../core/platform/network_status_channel.dart';
+import '../../../../core/platform/open_street_map_reverse_geocoder.dart';
 
 /// Time-aware greeting shown at the top of Home ("Good morning, ...").
 ///
@@ -39,37 +41,57 @@ class GreetingHeaderAndCurrentLocation extends StatefulWidget {
 }
 
 class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
+  static const _nativeBatteryPlatforms = {
+    TargetPlatform.android,
+    TargetPlatform.iOS,
+    TargetPlatform.macOS,
+  };
+  static const _batteryRefreshInterval = Duration(seconds: 30);
+  final Battery _battery = Battery();
   String _locationLabel = 'Finding your location…';
   String _batteryLabel = 'Checking battery…';
+  bool _usesOpenStreetMap = false;
   StreamSubscription<int>? _batterySubscription;
+  StreamSubscription<BatteryState>? _batteryStateSubscription;
   StreamSubscription<bool>? _networkSubscription;
+  Timer? _batteryRefreshTimer;
   bool _isOnline = true;
 
   @override
   void initState() {
     super.initState();
     _loadLocation();
-    final nativeTargets = {
-      TargetPlatform.android,
-      TargetPlatform.iOS,
-      TargetPlatform.macOS,
-    };
 
-    if (!kIsWeb && nativeTargets.contains(defaultTargetPlatform)) {
+    if (!kIsWeb && _nativeBatteryPlatforms.contains(defaultTargetPlatform)) {
       _loadDeviceInfo();
       _listenToBatteryEvents();
+    } else {
+      _loadBatteryFromPlugin();
+      _batteryStateSubscription = _battery.onBatteryStateChanged.listen(
+        (_) => _loadBatteryFromPlugin(),
+        onError: (Object error) {
+          debugPrint('Battery state stream failed: ${error.runtimeType}');
+        },
+      );
+      _batteryRefreshTimer = Timer.periodic(
+        _batteryRefreshInterval,
+        (_) => _loadBatteryFromPlugin(),
+      );
+    }
+
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       _loadNetworkStatus();
       _listenToNetworkEvents();
-    } else {
-      _batteryLabel = 'Battery unavailable';
     }
   }
 
   void _listenToBatteryEvents() {
-    if (kIsWeb) return;
     _batterySubscription = DeviceInfoChannel.batteryLevelStream.listen(
       (batteryLevel) => _setBatteryLabel('$batteryLevel%'),
-      onError: (_) => _setBatteryLabel('Battery unavailable'),
+      onError: (Object error) {
+        debugPrint('Native battery stream failed: ${error.runtimeType}');
+        _setBatteryLabel(_batteryUnavailableLabel);
+      },
     );
   }
 
@@ -95,25 +117,44 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
   @override
   void dispose() {
     _batterySubscription?.cancel();
+    _batteryStateSubscription?.cancel();
+    _batteryRefreshTimer?.cancel();
     _networkSubscription?.cancel();
     super.dispose();
   }
 
-  /// Gets battery, Android ID and the app-install UUID in one native call.
+  /// Gets battery and native device identifiers in one platform-channel call.
   Future<void> _loadDeviceInfo() async {
     try {
       final deviceInfo = await DeviceInfoChannel.getDeviceInfo();
       final batteryLevel = deviceInfo.batteryLevel;
       _setBatteryLabel(
-        batteryLevel == null ? 'Battery unavailable' : '$batteryLevel%',
+        batteryLevel == null ? _batteryUnavailableLabel : '$batteryLevel%',
       );
-    } on PlatformException {
-      _setBatteryLabel('Battery unavailable');
+    } on PlatformException catch (error) {
+      debugPrint('Native battery request failed (${error.code}).');
+      _setBatteryLabel(_batteryUnavailableLabel);
     } on MissingPluginException {
-      // The native handler is deliberately implemented on Android only.
-      _setBatteryLabel('Battery unavailable');
+      _setBatteryLabel(_batteryUnavailableLabel);
     }
   }
+
+  Future<void> _loadBatteryFromPlugin() async {
+    try {
+      final state = await _battery.batteryState;
+      if (state == BatteryState.unknown) {
+        _setBatteryLabel(_batteryUnavailableLabel);
+        return;
+      }
+      _setBatteryLabel('${await _battery.batteryLevel}%');
+    } on Object catch (error) {
+      debugPrint('Battery request failed: ${error.runtimeType}');
+      _setBatteryLabel(_batteryUnavailableLabel);
+    }
+  }
+
+  String get _batteryUnavailableLabel =>
+      kIsWeb ? 'Battery unavailable in this browser' : 'Battery unavailable';
 
   Future<void> _loadLocation() async {
     try {
@@ -131,40 +172,81 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
         return;
       }
       if (permission == LocationPermission.deniedForever) {
-        _setLocationLabel('Enable location in Settings');
+        _setLocationLabel(_locationPermissionSettingsLabel);
         return;
       }
 
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 30),
         ),
       );
+      String? placeLabel;
       try {
-        final placemarks = await Geocoding().placemarkFromCoordinates(
-          position.latitude,
-          position.longitude,
-        );
-        final label = _placeLabel(placemarks.isEmpty ? null : placemarks.first);
-        if (label != null) {
-          _setLocationLabel(label);
-          return;
+        if (kIsWeb) {
+          placeLabel = await OpenStreetMapReverseGeocoder.lookup(
+            position.latitude,
+            position.longitude,
+          );
+        } else {
+          final placemarks = await Geocoding().placemarkFromCoordinates(
+            position.latitude,
+            position.longitude,
+          );
+          placeLabel = _placeLabel(
+            placemarks.isEmpty ? null : placemarks.first,
+          );
         }
-      } catch (_) {
-        // macOS can provide coordinates before its reverse-geocoding service
-        // is available. The coordinates are still a useful current location.
+      } on Object catch (error) {
+        debugPrint('Reverse geocoding failed: ${error.runtimeType}');
+      }
+      if (placeLabel != null) {
+        _setLocationLabel(placeLabel, usesOpenStreetMap: kIsWeb);
+        return;
       }
 
       _setLocationLabel(_coordinateLabel(position));
-    } catch (_) {
-      _setLocationLabel('Allow location access in System Settings');
+    } on TimeoutException {
+      _setLocationLabel('Location request timed out');
+    } on PermissionDeniedException {
+      _setLocationLabel(_locationPermissionSettingsLabel);
+    } on LocationServiceDisabledException {
+      _setLocationLabel('Turn on device location services');
+    } on PlatformException catch (error) {
+      debugPrint('Location request failed (${error.code}).');
+      _setLocationLabel(
+        kIsWeb
+            ? 'Location unavailable — check browser permissions'
+            : 'Location unavailable',
+      );
+    } catch (error) {
+      debugPrint('Location request failed: ${error.runtimeType}');
+      _setLocationLabel(
+        kIsWeb
+            ? 'Location unavailable — check browser permissions'
+            : 'Location unavailable',
+      );
     }
+  }
+
+  String get _locationPermissionSettingsLabel {
+    if (kIsWeb) return 'Allow location in browser site settings';
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'Allow location in app settings';
+    }
+    return 'Allow location in System Settings';
   }
 
   String? _placeLabel(Placemark? place) {
     if (place == null) return null;
     final parts =
-        [place.locality, place.subAdministrativeArea, place.administrativeArea]
+        [
+              place.subLocality,
+              place.locality,
+              place.subAdministrativeArea,
+              place.administrativeArea,
+            ]
             .whereType<String>()
             .map((part) => part.trim())
             .where((part) => part.isNotEmpty)
@@ -176,8 +258,13 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
   String _coordinateLabel(Position position) =>
       '${position.latitude.toStringAsFixed(4)}°, ${position.longitude.toStringAsFixed(4)}°';
 
-  void _setLocationLabel(String value) {
-    if (mounted) setState(() => _locationLabel = value);
+  void _setLocationLabel(String value, {bool usesOpenStreetMap = false}) {
+    if (mounted) {
+      setState(() {
+        _locationLabel = value;
+        _usesOpenStreetMap = usesOpenStreetMap;
+      });
+    }
   }
 
   void _setBatteryLabel(String value) {
@@ -219,9 +306,21 @@ class _GreetingHeaderState extends State<GreetingHeaderAndCurrentLocation> {
             const SizedBox(width: 12),
             const Icon(Icons.battery_4_bar_outlined, size: 20),
             const SizedBox(width: 4),
-            Text(_batteryLabel, style: theme.textTheme.bodyMedium),
+            Flexible(
+              child: Text(
+                _batteryLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
           ],
         ),
+        if (_usesOpenStreetMap)
+          Text(
+            '© OpenStreetMap contributors',
+            style: theme.textTheme.bodySmall,
+          ),
         if (!_isOnline) ...[
           const SizedBox(height: 8),
           Row(

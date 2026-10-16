@@ -1,8 +1,9 @@
 import 'package:flutter/services.dart';
 
-/// Android-only device values supplied by the native application shell.
+/// Device values supplied by the native application shell on Android, iOS,
+/// and macOS.
 ///
-/// The install UUID is generated once and stored in Android SharedPreferences.
+/// The install UUID is generated once and stored in native platform storage.
 /// The Android ID is supplied by the operating system and is not a hardware
 /// serial number.
 class NativeDeviceInfo {
@@ -43,7 +44,7 @@ class DeviceInfoChannel {
   static Future<void> setScreenCaptureProtection(bool enabled) => _channel
       .invokeMethod<void>('setScreenCaptureProtection', {'enabled': enabled});
 
-  /// Emits a new percentage whenever Android reports a battery-state change.
+  /// Emits a new percentage when the native platform reports a battery change.
   static Stream<int> get batteryLevelStream => _batteryEvents
       .receiveBroadcastStream()
       .map<int>((event) => event as int)
