@@ -173,11 +173,11 @@ class _DashboardBody extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: state.summaries.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              childAspectRatio: 1.35,
+              mainAxisExtent: MediaQuery.textScalerOf(context).scale(144),
             ),
             itemBuilder: (context, index) {
               final summary = state.summaries[index];
